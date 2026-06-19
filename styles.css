@@ -161,6 +161,7 @@ html, body {
 .option:disabled { cursor: default; }
 .option:focus { outline: none; }
 .option:focus-visible:not(:disabled) { outline: 2px solid var(--accent); outline-offset: 2px; }
+.option { -webkit-tap-highlight-color: transparent; }
 .option.correct { border-color: var(--green); background: var(--green-soft); color: #2f6b44; font-weight: 700; animation: correctBounce 0.4s ease; }
 .option.wrong   { border-color: var(--red);   background: var(--red-soft);   color: #a23b38; font-weight: 700; animation: wrongShake   0.4s ease; }
 

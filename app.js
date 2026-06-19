@@ -495,6 +495,7 @@
   }
 
   function renderWordQuiz() {
+    if (document.activeElement) document.activeElement.blur();
     clear();
     const q = wordQuiz.questions[wordQuiz.idx];
     const card = el("div", { class: "card" });
@@ -607,6 +608,7 @@
   }
 
   function renderDailyQuestion() {
+    if (document.activeElement) document.activeElement.blur();
     clear();
     const word = daily.words[daily.idx];
     const card = el("div", { class: "card" });
