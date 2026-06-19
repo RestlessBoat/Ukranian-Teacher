@@ -393,7 +393,7 @@
     card.appendChild(el("button", { class: "btn btn-ghost", onclick: renderProfile },
       "📖 Мой словарь и профиль"));
 
-    card.appendChild(el("div", { class: "app-version" }, "v1.0.5"));
+    card.appendChild(el("div", { class: "app-version" }, "v1.0.6"));
 
     app.appendChild(card);
   }
@@ -887,7 +887,19 @@
 
   if ("serviceWorker" in navigator) {
     window.addEventListener("load", () => {
-      navigator.serviceWorker.register("sw.js").catch(() => {});
+      navigator.serviceWorker.register("sw.js").then((reg) => {
+        // Принудительно проверяем обновление при каждом запуске
+        reg.update();
+        reg.addEventListener("updatefound", () => {
+          const newWorker = reg.installing;
+          newWorker.addEventListener("statechange", () => {
+            // Новый SW установлен и готов — перезагружаем страницу
+            if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
+              window.location.reload();
+            }
+          });
+        });
+      }).catch(() => {});
     });
   }
 })();
