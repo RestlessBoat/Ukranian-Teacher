@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "ukr-daily",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["/tmp/ukr-preview/serve.py", "8000"],
+      "port": 8000
+    }
+  ]
+}

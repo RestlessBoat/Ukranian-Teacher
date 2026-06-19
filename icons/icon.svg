@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#E08A6C"/>
+      <stop offset="1" stop-color="#CC785C"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <rect x="96" y="150" width="320" height="26" rx="13" fill="#2E72C8"/>
+  <rect x="96" y="150" width="160" height="26" rx="13" fill="#2E72C8"/>
+  <rect x="96" y="184" width="320" height="26" rx="13" fill="#F2C94C"/>
+  <text x="256" y="380" font-family="-apple-system, Helvetica, Arial, sans-serif"
+        font-size="240" font-weight="800" fill="#FFFFFF" text-anchor="middle">Ї</text>
+</svg>
