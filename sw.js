@@ -1,4 +1,4 @@
-const CACHE = "ukr-daily-v4";
+const CACHE = "ukr-daily-v1.0.8";
 const ASSETS = [
   "./",
   "./index.html",

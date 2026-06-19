@@ -393,7 +393,7 @@
     card.appendChild(el("button", { class: "btn btn-ghost", onclick: renderProfile },
       "📖 Мой словарь и профиль"));
 
-    card.appendChild(el("div", { class: "app-version" }, "v1.0.7"));
+    card.appendChild(el("div", { class: "app-version" }, "v1.0.8"));
 
     app.appendChild(card);
   }
