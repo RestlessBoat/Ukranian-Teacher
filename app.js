@@ -134,7 +134,8 @@
     if (!("speechSynthesis" in window)) return;
     try {
       window.speechSynthesis.cancel();
-      const u = new SpeechSynthesisUtterance(text);
+      const cleaned = text.replace(/^\s*[-–—]\s*/, "").trim();
+      const u = new SpeechSynthesisUtterance(cleaned);
       u.lang = "uk-UA";
       if (ukVoice) u.voice = ukVoice;
       u.rate = 0.92;
@@ -613,7 +614,12 @@
     const header = practiceMode
       ? `Практика · ${daily.idx + 1}/${daily.words.length}`
       : `Ежедневный квиз · ${daily.idx + 1}/${daily.words.length}`;
-    card.appendChild(el("div", { class: "quiz-progress" }, header));
+    const progressRow = el("div", { class: "quiz-progress-row" },
+      el("div", { class: "quiz-progress" }, header));
+    if (practiceMode) {
+      progressRow.appendChild(el("button", { class: "quit-btn", onclick: () => { practiceMode = false; renderHome(); } }, "✕"));
+    }
+    card.appendChild(progressRow);
 
     card.appendChild(el("div", { class: "q-prompt" },
       daily.retry ? "Ещё раз — выберите перевод:" : "Выберите перевод слова:"));

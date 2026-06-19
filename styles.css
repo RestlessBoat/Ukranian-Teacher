@@ -140,7 +140,9 @@ html, body {
 .ex-ru { font-size: 14px; color: var(--ink-soft); }
 
 /* ====== Квиз ====== */
+.quiz-progress-row { position: relative; display: flex; align-items: center; justify-content: center; margin-bottom: 0; }
 .quiz-progress { font-size: 12px; font-weight: 700; color: var(--ink-soft); text-transform: uppercase; letter-spacing: 0.04em; text-align: center; }
+.quit-btn { position: absolute; right: 0; background: none; border: none; font-size: 16px; color: var(--ink-soft); cursor: pointer; padding: 4px 6px; line-height: 1; }
 .q-prompt { font-size: 15px; color: var(--ink-soft); text-align: center; }
 .q-term-row { display: flex; align-items: center; justify-content: center; gap: 10px; }
 .q-term { font-size: 28px; font-weight: 800; text-align: center; }
@@ -157,6 +159,8 @@ html, body {
 .option:hover:not(:disabled) { border-color: var(--accent); }
 .option:active:not(:disabled) { transform: scale(0.99); }
 .option:disabled { cursor: default; }
+.option:focus { outline: none; }
+.option:focus-visible:not(:disabled) { outline: 2px solid var(--accent); outline-offset: 2px; }
 .option.correct { border-color: var(--green); background: var(--green-soft); color: #2f6b44; font-weight: 700; animation: correctBounce 0.4s ease; }
 .option.wrong   { border-color: var(--red);   background: var(--red-soft);   color: #a23b38; font-weight: 700; animation: wrongShake   0.4s ease; }
 
