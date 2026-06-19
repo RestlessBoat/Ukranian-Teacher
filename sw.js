@@ -1,5 +1,4 @@
-// Service worker: офлайн-кеш статичних файлів (precache + cache-first).
-const CACHE = "ukr-daily-v3";
+const CACHE = "ukr-daily-v4";
 const ASSETS = [
   "./",
   "./index.html",
@@ -29,19 +28,16 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
+  // Network-first: пробуем получить свежую версию, при неудаче — кэш
   event.respondWith(
-    caches.match(event.request).then((cached) => {
-      if (cached) return cached;
-      return fetch(event.request)
-        .then((resp) => {
-          // Кладём успешные ответы в кеш (для будущих запросов).
-          if (resp && resp.status === 200 && resp.type === "basic") {
-            const copy = resp.clone();
-            caches.open(CACHE).then((c) => c.put(event.request, copy));
-          }
-          return resp;
-        })
-        .catch(() => caches.match("./index.html"));
-    })
+    fetch(event.request)
+      .then((resp) => {
+        if (resp && resp.status === 200 && resp.type === "basic") {
+          const copy = resp.clone();
+          caches.open(CACHE).then((c) => c.put(event.request, copy));
+        }
+        return resp;
+      })
+      .catch(() => caches.match(event.request).then((cached) => cached || caches.match("./index.html")))
   );
 });
