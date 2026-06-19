@@ -31,8 +31,8 @@
   };
   function posLabel(pos) { return POS_RU[pos] || pos; }
 
-  const MONTHS_RU = ["Январь","Февраль","Март","Апрель","Май","Июнь",
-                     "Июль","Август","Сентябрь","Октябрь","Ноябрь","Декабрь"];
+  const MONTHS_RU = ["Січень","Лютий","Березень","Квітень","Травень","Червень",
+                     "Липень","Серпень","Вересень","Жовтень","Листопад","Грудень"];
 
   // ---------- Состояние ----------
   const WORDS = window.WORDS || [];
@@ -290,7 +290,7 @@
     // Backfill сегодняшних точек из date-флагов (работает даже если активность была до обновления кода)
     if (progress.lastNewWordsDate === todayStr)  { if (!log[todayStr]) log[todayStr] = {}; log[todayStr].learned = true; }
     if (progress.lastDailyQuizDate === todayStr) { if (!log[todayStr]) log[todayStr] = {}; log[todayStr].quiz   = true; }
-    const DOW = ["Пн","Вт","Ср","Чт","Пт","Сб","Вс"];
+    const DOW = ["Пн","Вт","Ср","Чт","Пт","Сб","Нд"];
 
     const wrap = el("div", { class: "cal-wrap" });
     wrap.appendChild(el("div", { class: "cal-header" },
@@ -393,7 +393,7 @@
     card.appendChild(el("button", { class: "btn btn-ghost", onclick: renderProfile },
       "📖 Мой словарь и профиль"));
 
-    card.appendChild(el("div", { class: "app-version" }, "v1.0.6"));
+    card.appendChild(el("div", { class: "app-version" }, "v1.0.7"));
 
     app.appendChild(card);
   }
