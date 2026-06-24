@@ -26,7 +26,10 @@
       newWordIndex: 0,        // указатель на следующее слово в WORDS
       dayStreak: 0,
       lastActiveDate: null,   // для подсчёта streak
-      activityLog: {}         // { "YYYY-MM-DD": { learned: bool, quiz: bool } }
+      activityLog: {},        // { "YYYY-MM-DD": { learned: bool, quiz: bool, phrase: bool } }
+      autoSpeak: true,        // автоозвучка при показе нового слова
+      lastPhraseDate: null,   // когда последний раз смотрели фразу дня (для XP)
+      dismissedToday: null    // { date, quiz, new } — скрытые done-уведомления
     };
   }
 

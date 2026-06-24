@@ -49,6 +49,14 @@
   function save() { window.Storage.save(progress); }
   function today() { return window.Storage.today(); }
 
+  function getDismissed() {
+    const t = today();
+    if (!progress.dismissedToday || progress.dismissedToday.date !== t) {
+      progress.dismissedToday = { date: t, quiz: false, new: false };
+    }
+    return progress.dismissedToday;
+  }
+
   function shuffle(arr) {
     const a = arr.slice();
     for (let i = a.length - 1; i > 0; i--) {
@@ -274,6 +282,113 @@
     );
   }
 
+  // ---------- Компактный виджет уровня ----------
+  function levelWidget() {
+    const league = leagueForLevel(progress.level);
+    const need = xpNeededForLevel(progress.level);
+    const pct = progress.level >= MAX_LEVEL ? 100 : Math.round((progress.xp / need) * 100);
+    return el("div", { class: "level-widget" },
+      el("span", { class: "league-emoji-sm" }, league.emoji),
+      el("div", { class: "level-info" },
+        el("span", { class: "level-label-sm" }, `Ур. ${progress.level} · ${league.name}`),
+        el("div", { class: "xp-bar-sm" },
+          el("div", { class: "xp-fill-sm", style: `width:${pct}%` })
+        )
+      )
+    );
+  }
+
+  function streakBubble() {
+    return el("div", { class: "streak-bubble" }, "🔥 " + (progress.dayStreak || 0));
+  }
+
+  function wordsLearnedBadge() {
+    return el("div", { class: "words-learned-badge" },
+      el("div", { class: "words-learned-num" }, String(progress.learnedWordIds.length)),
+      el("div", { class: "words-learned-lbl" }, "выучено")
+    );
+  }
+
+  // ---------- Фраза дня ----------
+  function pickPhraseOfDay() {
+    const phrases = window.PHRASES;
+    if (!phrases || phrases.length === 0) return null;
+    const d = new Date();
+    const dayIndex = Math.floor(d.getTime() / 86400000);
+    return phrases[dayIndex % phrases.length];
+  }
+
+  function buildPhraseCard() {
+    const phrase = pickPhraseOfDay();
+    if (!phrase) return null;
+    const viewed = progress.lastPhraseDate === today();
+    const card = el("div", { class: "phrase-card" });
+    card.appendChild(el("div", { class: "phrase-label" }, "✦ Фраза дня"));
+    card.appendChild(el("div", { class: "phrase-uk" }, phrase.uk));
+    card.appendChild(el("div", { class: "phrase-hint" },
+      el("span", { class: "phrase-hint-text" }, viewed ? "" : "Нажми — узнай значение"),
+      viewed
+        ? el("span", { class: "phrase-viewed" }, "✓ просмотрено")
+        : el("span", { class: "phrase-xp-badge" }, "+5 XP")
+    ));
+    card.addEventListener("click", () => showPhraseModal(phrase));
+    return card;
+  }
+
+  function showPhraseModal(phrase) {
+    const alreadyViewed = progress.lastPhraseDate === today();
+    if (!alreadyViewed) {
+      addXp(5);
+      logActivity("phrase");
+      progress.lastPhraseDate = today();
+      save();
+    }
+    const overlay = el("div", { class: "phrase-overlay" });
+    const modal = el("div", { class: "phrase-modal" });
+    modal.appendChild(el("div", { class: "phrase-modal-header" },
+      el("div", { class: "phrase-modal-uk" }, phrase.uk),
+      speakerButton(phrase.uk, false)
+    ));
+    modal.appendChild(el("div", { class: "phrase-modal-ru" }, phrase.ru));
+    modal.appendChild(el("div", { class: "phrase-modal-exp" }, phrase.explanation));
+    modal.appendChild(el("button", { class: "btn btn-ghost", onclick: () => { overlay.remove(); renderHome(); } }, "Закрыть"));
+    overlay.appendChild(modal);
+    overlay.addEventListener("click", (e) => { if (e.target === overlay) { overlay.remove(); renderHome(); } });
+    document.body.appendChild(overlay);
+  }
+
+  // ---------- Карточка прогресса ----------
+  function buildProgressCard() {
+    const learned = learnedWords();
+    const remaining = remainingNewWords();
+    const card = el("div", { class: "card" });
+    card.appendChild(el("div", { class: "progress-card-header" },
+      el("div", null,
+        el("div", { class: "progress-card-label" }, "Впереди"),
+        el("div", { class: "progress-card-count" }, String(remaining))
+      ),
+      el("div", { class: "progress-card-section" }, "Основы разговора")
+    ));
+    const tape = el("div", { class: "word-tape" });
+    learned.slice(-14).forEach((w) => tape.appendChild(el("span", { class: "word-chip" }, w.uk)));
+    tape.appendChild(el("div", { class: "word-tape-fade" }));
+    card.appendChild(tape);
+    return card;
+  }
+
+  // ---------- Строки действий (выполнено) ----------
+  function buildDoneRow(icon, text, onDismiss) {
+    return el("div", { class: "action-row" },
+      el("div", { class: "action-row-left" },
+        el("span", null, icon + " " + text)
+      ),
+      el("div", { class: "action-row-right" },
+        el("span", { class: "action-done-badge" }, "✅ готово"),
+        el("button", { class: "dismiss-btn", onclick: (e) => { e.stopPropagation(); onDismiss(); } }, "✕")
+      )
+    );
+  }
+
   // ---------- Календарь активности ----------
   function renderCalendar() {
     const now = new Date();
@@ -330,72 +445,91 @@
     clear();
     const st = dayState();
     const learnedCount = progress.learnedWordIds.length;
+    const dismissed = getDismissed();
 
-    const card = el("div", { class: "card home-card" });
-
-    card.appendChild(el("div", { class: "home-hero" },
+    // Карточка 1: Герой + компактная статистика
+    const heroCard = el("div", { class: "card" });
+    heroCard.appendChild(el("div", { class: "home-hero" },
       el("div", { class: "flag-stripe" }),
       el("h1", { class: "app-title" }, "Украинский каждый день"),
       el("p", { class: "subtitle" }, "Маленькие шаги к большому словарю")
     ));
-
-    card.appendChild(statusBar());
-
-    card.appendChild(el("div", { class: "stat-row" },
-      el("div", { class: "stat-pill" },
-        el("div", { class: "stat-num" }, String(learnedCount)),
-        el("div", { class: "stat-lbl" }, "слов выучено")),
-      el("div", { class: "stat-pill" },
-        el("div", { class: "stat-num" }, String(remainingNewWords())),
-        el("div", { class: "stat-lbl" }, "ещё впереди"))
+    heroCard.appendChild(el("div", { class: "level-widget-row" },
+      levelWidget(),
+      streakBubble(),
+      wordsLearnedBadge()
     ));
+    app.appendChild(heroCard);
 
-    // Календарь активности
-    card.appendChild(renderCalendar());
+    // Карточка 2: Фраза дня
+    const phraseCard = buildPhraseCard();
+    if (phraseCard) app.appendChild(phraseCard);
 
-    const actions = el("div", { class: "actions" });
+    // Карточка 3: Прогресс (лента слов)
+    if (learnedCount > 0) app.appendChild(buildProgressCard());
+
+    // Карточка 4: Действия
+    const actionsCard = el("div", { class: "card" });
+    let hasRows = false;
+    const dismissedBadges = [];
 
     if (st.quizDue) {
-      actions.appendChild(el("button", { class: "btn btn-primary", onclick: startDailyQuiz },
-        "📋 Ежедневный квиз"));
+      actionsCard.appendChild(el("button", { class: "btn btn-primary", onclick: startDailyQuiz }, "📋 Ежедневный квиз"));
+      hasRows = true;
     } else if (st.hasLearned) {
-      actions.appendChild(el("div", { class: "done-note" }, "✅ Ежедневный квиз пройден"));
+      if (!dismissed.quiz) {
+        actionsCard.appendChild(buildDoneRow("📋", "Ежедневный квиз", () => {
+          dismissed.quiz = true; save(); renderHome();
+        }));
+        hasRows = true;
+      } else {
+        dismissedBadges.push("✅ Квиз");
+      }
     }
 
     if (st.newDue) {
-      actions.appendChild(el("button", {
+      actionsCard.appendChild(el("button", {
         class: st.quizDue ? "btn btn-secondary" : "btn btn-primary",
         onclick: startLearnNew
       }, "✨ Выучить " + NEW_WORDS_PER_DAY + " новых слова"));
+      hasRows = true;
+    } else if (remainingNewWords() === 0) {
+      actionsCard.appendChild(el("div", { class: "done-note" }, "🎉 Все слова словаря выучены!"));
+      hasRows = true;
     } else {
-      actions.appendChild(el("div", { class: "done-note" },
-        remainingNewWords() === 0 ? "🎉 Все слова словаря выучены!" : "✅ Новые слова на сегодня выучены"));
+      if (!dismissed.new) {
+        actionsCard.appendChild(buildDoneRow("✨", "Новые слова на сегодня", () => {
+          dismissed.new = true; save(); renderHome();
+        }));
+        hasRows = true;
+      } else {
+        dismissedBadges.push("✅ Слова");
+      }
     }
 
-    // Кнопка «Хочу ещё» когда дневная норма выполнена
+    if (dismissedBadges.length > 0) {
+      actionsCard.appendChild(el("div", { class: "dismissed-badges-row" },
+        ...dismissedBadges.map((t) => el("span", { class: "dismissed-badge" }, t))
+      ));
+      hasRows = true;
+    }
+
     if (!st.quizDue && !st.newDue && remainingNewWords() > 0) {
-      actions.appendChild(el("button", { class: "btn btn-secondary", onclick: startExtraLearning },
-        "📚 Хочу учить ещё!"));
+      actionsCard.appendChild(el("button", { class: "btn btn-secondary", onclick: startExtraLearning }, "📚 Хочу учить ещё!"));
+      hasRows = true;
     }
 
-    if (!st.quizDue && !st.newDue) {
-      actions.appendChild(el("div", { class: "all-done" }, "На сегодня всё! Возвращайся завтра 🌙"));
-    }
+    if (hasRows) app.appendChild(actionsCard);
 
-    card.appendChild(actions);
+    // Календарь
+    app.appendChild(el("div", { class: "card" }, renderCalendar()));
 
-    // Практика (всегда если есть что проверять)
+    // Кнопки
     if (learnedCount > 0) {
-      card.appendChild(el("button", { class: "btn btn-ghost", onclick: startPracticeQuiz },
-        "🔁 Проверить себя"));
+      app.appendChild(el("button", { class: "btn btn-ghost", onclick: startPracticeQuiz }, "🔁 Проверить себя"));
     }
-
-    card.appendChild(el("button", { class: "btn btn-ghost", onclick: renderProfile },
-      "📖 Мой словарь и профиль"));
-
-    card.appendChild(el("div", { class: "app-version" }, "v1.0.8"));
-
-    app.appendChild(card);
+    app.appendChild(el("button", { class: "btn btn-ghost", onclick: renderProfile }, "📖 Мой словарь и профиль"));
+    app.appendChild(el("div", { class: "app-version" }, "v1.1.0"));
   }
 
   // ============================================================
@@ -459,7 +593,7 @@
       onclick: () => startWordQuiz(word) }, "Проверить себя →"));
 
     app.appendChild(card);
-    setTimeout(() => speak(word.uk), 250);
+    if (progress.autoSpeak !== false) setTimeout(() => speak(word.uk), 250);
   }
 
   function buildWordQuestions(word) {
@@ -476,14 +610,31 @@
     });
     const example = (word.examples || [])[0];
     if (example) {
-      const re = new RegExp(word.uk, "i");
-      const gapped = re.test(example.uk) ? example.uk.replace(re, "____") : null;
-      if (gapped) {
+      const tokens = example.uk.split(/\s+/);
+      if (tokens.length >= 4) {
+        const distractors = shuffle(
+          WORDS.filter((w) => {
+            const s = new Set(tokens.map((t) => t.replace(/[,?.!:;–—«»""'']/g, "").toLowerCase()));
+            return !s.has(w.uk.toLowerCase()) && w.id !== word.id;
+          })
+        ).slice(0, 3).map((w) => w.uk);
         qs.push({
-          prompt: "Вставь слово в предложение:",
-          term: gapped, hint: example.ru, speak: null,
-          correct: word.uk, options: translationOptions(word, "uk")
+          type: "sentence",
+          prompt: "Составь предложение:",
+          hint: example.ru, speak: null,
+          correct: tokens,
+          tiles: shuffle([...tokens, ...distractors])
         });
+      } else {
+        const re = new RegExp(word.uk, "i");
+        const gapped = re.test(example.uk) ? example.uk.replace(re, "____") : null;
+        if (gapped) {
+          qs.push({
+            prompt: "Вставь слово в предложение:",
+            term: gapped, hint: example.ru, speak: null,
+            correct: word.uk, options: translationOptions(word, "uk")
+          });
+        }
       }
     }
     return qs.slice(0, QUIZ_QUESTIONS_PER_WORD);
@@ -498,8 +649,9 @@
 
   function renderWordQuiz() {
     if (document.activeElement) document.activeElement.blur();
-    clear();
     const q = wordQuiz.questions[wordQuiz.idx];
+    if (q.type === "sentence") { renderSentenceQuiz(q); return; }
+    clear();
     const card = el("div", { class: "card" });
 
     card.appendChild(el("div", { class: "quiz-progress" },
@@ -538,6 +690,97 @@
       if (wordQuiz.idx < wordQuiz.questions.length) renderWordQuiz();
       else finishWordQuiz();
     }, ok ? 650 : 1300);
+  }
+
+  function renderSentenceQuiz(q) {
+    clear();
+    let placed = [];
+    const card = el("div", { class: "card" });
+
+    card.appendChild(el("div", { class: "quiz-progress-row" },
+      el("div", { class: "quiz-progress" }, `Запоминание · ${wordQuiz.idx + 1}/${wordQuiz.questions.length}`)
+    ));
+    card.appendChild(el("div", { class: "q-prompt" }, q.prompt));
+    card.appendChild(el("div", { class: "sentence-hint" }, q.hint));
+
+    const answerZone = el("div", { class: "sentence-answer" });
+    const tileGrid = el("div", { class: "sentence-tiles" });
+
+    const checkBtn = el("button", { class: "btn btn-primary", style: "margin-top:4px" }, "Проверить →");
+    checkBtn.disabled = true;
+
+    function normalize(s) { return s.replace(/[,?.!:;–—«»""'']/g, "").toLowerCase().trim(); }
+
+    function rebuildTiles() {
+      tileGrid.innerHTML = "";
+      const usedCount = {};
+      placed.forEach((w) => { usedCount[w] = (usedCount[w] || 0) + 1; });
+      q.tiles.forEach((tile) => {
+        const used = usedCount[tile] || 0;
+        const total = q.tiles.filter((t) => t === tile).length;
+        const btn = el("button", { class: "sentence-tile" }, tile);
+        if (used >= total) { btn.disabled = true; }
+        btn.addEventListener("click", () => {
+          if (placed.length < q.correct.length) {
+            placed.push(tile);
+            rebuildAnswer();
+            rebuildTiles();
+            checkBtn.disabled = placed.length !== q.correct.length;
+          }
+        });
+        tileGrid.appendChild(btn);
+      });
+    }
+
+    function rebuildAnswer() {
+      answerZone.innerHTML = "";
+      if (placed.length === 0) {
+        answerZone.appendChild(el("span", { class: "sentence-placeholder" }, "Выбирай слова ниже…"));
+        return;
+      }
+      placed.forEach((word, i) => {
+        const chip = el("button", { class: "sentence-placed-chip" }, word);
+        chip.addEventListener("click", () => {
+          placed.splice(i, 1);
+          rebuildAnswer();
+          rebuildTiles();
+          checkBtn.disabled = placed.length !== q.correct.length;
+        });
+        answerZone.appendChild(chip);
+      });
+    }
+
+    checkBtn.addEventListener("click", () => {
+      const ok = placed.length === q.correct.length &&
+        placed.every((w, i) => normalize(w) === normalize(q.correct[i]));
+      playSound(ok ? "correct" : "wrong");
+      vibrate(ok ? "correct" : "wrong");
+      answerZone.querySelectorAll(".sentence-placed-chip").forEach((chip, i) => {
+        chip.disabled = true;
+        chip.classList.add(normalize(chip.textContent) === normalize(q.correct[i]) ? "chip-correct" : "chip-wrong");
+      });
+      tileGrid.querySelectorAll(".sentence-tile").forEach((b) => (b.disabled = true));
+      checkBtn.disabled = true;
+      if (!ok) {
+        const show = el("div", { class: "sentence-correct-show" },
+          el("div", { class: "sentence-correct-label" }, "Правильно:"),
+          el("div", { class: "sentence-correct-text" }, q.correct.join(" "))
+        );
+        card.insertBefore(show, checkBtn);
+      }
+      setTimeout(() => {
+        wordQuiz.idx += 1;
+        if (wordQuiz.idx < wordQuiz.questions.length) renderWordQuiz();
+        else finishWordQuiz();
+      }, ok ? 700 : 2000);
+    });
+
+    rebuildAnswer();
+    rebuildTiles();
+    card.appendChild(answerZone);
+    card.appendChild(tileGrid);
+    card.appendChild(checkBtn);
+    app.appendChild(card);
   }
 
   function finishWordQuiz() {
@@ -801,6 +1044,23 @@
         el("div", { class: "stat-num" }, "🔥 " + (progress.dayStreak || 0)),
         el("div", { class: "stat-lbl" }, "серия дней"))
     ));
+
+    const settingsSection = el("div", { class: "card" });
+    const autoSpeakOn = progress.autoSpeak !== false;
+    const toggleBtn = el("button", {
+      class: "toggle-btn" + (autoSpeakOn ? " toggle-on" : "")
+    }, autoSpeakOn ? "Вкл" : "Выкл");
+    toggleBtn.addEventListener("click", () => {
+      progress.autoSpeak = progress.autoSpeak === false;
+      save();
+      toggleBtn.className = "toggle-btn" + (progress.autoSpeak ? " toggle-on" : "");
+      toggleBtn.textContent = progress.autoSpeak ? "Вкл" : "Выкл";
+    });
+    settingsSection.appendChild(el("div", { class: "setting-row" },
+      el("span", { class: "setting-label" }, "🔊 Автоозвучка новых слов"),
+      toggleBtn
+    ));
+    card.appendChild(settingsSection);
 
     card.appendChild(el("h3", { class: "dict-title" }, "Мой словарь"));
     const search = el("input", { class: "search", type: "text", placeholder: "Поиск слова…" });

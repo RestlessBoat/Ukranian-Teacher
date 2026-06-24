@@ -1,4 +1,4 @@
-const CACHE = "ukr-daily-v1.0.8";
+const CACHE = "ukr-daily-v1.1.0";
 const ASSETS = [
   "./",
   "./index.html",
@@ -6,6 +6,7 @@ const ASSETS = [
   "./app.js",
   "./storage.js",
   "./data/words.js",
+  "./data/phrases.js",
   "./manifest.webmanifest",
   "./icons/icon.svg",
   "./icons/icon-192.png",

@@ -40,6 +40,7 @@ html, body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  gap: 12px;
 }
 
 /* ====== Карточки ====== */
@@ -258,3 +259,153 @@ html, body {
 .cal-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
 .cal-dot-blue   { background: var(--ua-blue); }
 .cal-dot-yellow { background: var(--ua-yellow); }
+
+/* ====== Компактный виджет уровня (главный экран) ====== */
+.level-widget-row {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--bg-2); border-radius: var(--radius-sm); padding: 10px 12px;
+}
+.level-widget { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; }
+.league-emoji-sm { font-size: 22px; line-height: 1; flex-shrink: 0; }
+.level-info { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.level-label-sm { font-size: 11px; font-weight: 700; color: var(--ink-soft); white-space: nowrap; }
+.xp-bar-sm { width: 80px; height: 4px; background: #E0DDD3; border-radius: 3px; overflow: hidden; }
+.xp-fill-sm { height: 100%; background: var(--accent); border-radius: 3px; transition: width 0.4s ease; }
+
+.streak-bubble {
+  display: flex; align-items: center; gap: 4px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 20px; padding: 5px 10px;
+  font-size: 13px; font-weight: 700; white-space: nowrap; flex-shrink: 0;
+}
+
+.words-learned-badge { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; }
+.words-learned-num { font-size: 18px; font-weight: 800; color: var(--accent-700); line-height: 1; }
+.words-learned-lbl { font-size: 10px; color: var(--ink-soft); margin-top: 1px; }
+
+/* ====== Фраза дня ====== */
+.phrase-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); box-shadow: var(--shadow);
+  padding: 16px 20px; cursor: pointer;
+  animation: rise 0.28s ease;
+  transition: background 0.12s ease;
+}
+.phrase-card:active { background: var(--bg-2); }
+.phrase-label {
+  font-size: 10px; font-weight: 700; color: var(--ua-blue);
+  text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px;
+}
+.phrase-uk { font-size: 16px; font-weight: 700; color: var(--ink); margin-bottom: 6px; line-height: 1.4; }
+.phrase-hint { display: flex; align-items: center; justify-content: space-between; }
+.phrase-hint-text { font-size: 13px; color: var(--ink-soft); }
+.phrase-xp-badge {
+  font-size: 11px; color: var(--green); background: var(--green-soft);
+  border-radius: 10px; padding: 3px 8px; font-weight: 700;
+}
+.phrase-viewed { font-size: 12px; color: var(--green); font-weight: 600; }
+
+.phrase-overlay {
+  position: fixed; inset: 0; background: rgba(43,42,39,0.5);
+  display: flex; align-items: flex-end; justify-content: center; z-index: 200;
+}
+.phrase-modal {
+  background: var(--surface); border-radius: var(--radius) var(--radius) 0 0;
+  padding: 24px 20px max(28px, env(safe-area-inset-bottom));
+  width: 100%; max-width: 520px;
+  display: flex; flex-direction: column; gap: 12px;
+  animation: slideUp 0.25s ease;
+}
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+.phrase-modal-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.phrase-modal-uk { font-size: 20px; font-weight: 800; color: var(--ink); line-height: 1.3; flex: 1; }
+.phrase-modal-ru { font-size: 14px; color: var(--ink-soft); }
+.phrase-modal-exp {
+  font-size: 14px; color: var(--ink); line-height: 1.6;
+  background: var(--bg-2); border-radius: var(--radius-sm); padding: 12px 14px;
+}
+
+/* ====== Карточка прогресса (лента слов) ====== */
+.progress-card-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 10px; }
+.progress-card-label { font-size: 10px; font-weight: 700; color: var(--ink-soft); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 2px; }
+.progress-card-count { font-size: 22px; font-weight: 800; color: var(--ink); line-height: 1; }
+.progress-card-section { font-size: 11px; color: var(--ink-soft); text-align: right; }
+
+.word-tape { display: flex; flex-wrap: wrap; gap: 5px; max-height: 60px; overflow: hidden; position: relative; }
+.word-tape-fade {
+  position: absolute; bottom: 0; left: 0; right: 0; height: 26px;
+  background: linear-gradient(transparent, var(--surface));
+  pointer-events: none;
+}
+.word-chip {
+  font-size: 12px; color: var(--ua-blue); background: #EBF2FA;
+  border-radius: 10px; padding: 3px 9px; white-space: nowrap;
+}
+
+/* ====== Action-строки (квиз/слова — выполнено) ====== */
+.action-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 11px 0; border-bottom: 1px solid var(--border);
+}
+.action-row:last-child { border-bottom: none; padding-bottom: 0; }
+.action-row:first-child { padding-top: 0; }
+.action-row-left { display: flex; align-items: center; gap: 9px; font-size: 14px; color: var(--ink); }
+.action-row-right { display: flex; align-items: center; gap: 6px; }
+.action-done-badge { font-size: 12px; color: var(--green); font-weight: 600; }
+.dismiss-btn {
+  background: none; border: none; font-size: 14px; color: var(--ink-soft);
+  cursor: pointer; padding: 2px 5px; line-height: 1; border-radius: 6px;
+}
+.dismiss-btn:active { background: var(--bg-2); }
+
+.dismissed-badges-row { display: flex; gap: 8px; padding: 4px 0; }
+.dismissed-badge {
+  font-size: 12px; color: var(--green); background: var(--green-soft);
+  border-radius: 10px; padding: 3px 10px; font-weight: 600;
+}
+
+/* ====== Переключатель автоозвучки ====== */
+.setting-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 0; border-bottom: 1px solid var(--border);
+}
+.setting-row:last-of-type { border-bottom: none; }
+.setting-label { font-size: 14px; color: var(--ink); }
+.toggle-btn {
+  font-size: 12px; font-weight: 700; padding: 5px 14px;
+  border-radius: 20px; border: 1.5px solid var(--border);
+  cursor: pointer; font-family: inherit; background: var(--bg-2); color: var(--ink-soft);
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.toggle-btn.toggle-on { background: var(--green-soft); color: var(--green); border-color: var(--green); }
+
+/* ====== Составление предложения ====== */
+.sentence-hint { font-size: 15px; color: var(--accent-700); font-weight: 600; text-align: center; background: var(--accent-soft); border-radius: var(--radius-sm); padding: 10px 14px; }
+.sentence-answer {
+  min-height: 52px; background: var(--bg-2); border-radius: var(--radius-sm);
+  padding: 10px 12px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
+  border: 1.5px dashed var(--border);
+}
+.sentence-placeholder { font-size: 14px; color: var(--ink-soft); font-style: italic; }
+.sentence-placed-chip {
+  font-size: 15px; background: var(--surface); border: 1.5px solid var(--accent);
+  border-radius: 10px; padding: 5px 11px; cursor: pointer; font-family: inherit;
+  color: var(--ink); font-weight: 600;
+}
+.sentence-placed-chip:active { transform: scale(0.96); }
+.sentence-placed-chip.chip-correct { border-color: var(--green); background: var(--green-soft); color: #2f6b44; }
+.sentence-placed-chip.chip-wrong   { border-color: var(--red);   background: var(--red-soft);   color: #a23b38; }
+
+.sentence-tiles { display: flex; flex-wrap: wrap; gap: 7px; }
+.sentence-tile {
+  font-size: 15px; background: var(--surface); border: 1.5px solid var(--border);
+  border-radius: 10px; padding: 8px 13px; cursor: pointer; font-family: inherit; color: var(--ink);
+  transition: border-color 0.1s, background 0.1s;
+}
+@media (hover: hover) { .sentence-tile:hover:not(:disabled) { border-color: var(--accent); } }
+.sentence-tile:active:not(:disabled) { transform: scale(0.97); }
+.sentence-tile:disabled { opacity: 0.3; cursor: default; }
+
+.sentence-correct-show { background: var(--green-soft); border-radius: var(--radius-sm); padding: 10px 14px; }
+.sentence-correct-label { font-size: 11px; font-weight: 700; color: var(--green); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 4px; }
+.sentence-correct-text { font-size: 15px; font-weight: 600; color: #2f6b44; }
